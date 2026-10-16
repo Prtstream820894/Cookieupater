@@ -1,0 +1,27 @@
+name: Auto Update Cookie
+on:
+  schedule:
+    - cron: "0 */5 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update-cookie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
+        run: |
+          COOKIE_LINE=$(curl -sL "$PLAYLIST_URL" | grep -A2 "Star Vijay Fun Games" | grep "http-cookie")
+          COOKIE=$(echo "$COOKIE_LINE" | sed 's/.*http-cookie=//')
+          {
+            echo "🍪 Firebase Stored Cookie:"
+            echo "$COOKIE"
+          } > cookie.txt
+      - run: |
+          git config --global user.name "bot"
+          git config --global user.email "bot@github.com"
+          git add cookie.txt
+          git commit -m "update" || true
+          git push
