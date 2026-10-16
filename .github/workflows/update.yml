@@ -1,32 +1,103 @@
-name: Auto Update Cookie
+name: Update Star Vijay Fun Games Cookie
+
 on:
   schedule:
-    - cron: "0 */5 * * *"
+    - cron: '0 */6 * * *'
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   update-cookie:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Extract Cookie
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Fetch Cookie and Update cookie.txt
         env:
-          PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
+          PLAYLIST_URL: "https://game.playindia.fun/Jtv/XdEFdV/Playlist.m3u"
         run: |
-          curl -sL -A "Mozilla/5.0" "$PLAYLIST_URL" -o playlist.m3u
-          COOKIE_LINE=$(cat playlist.m3u | grep -A2 "Star Vijay Fun Games" | grep "http-cookie" || true)
-          COOKIE=$(echo "$COOKIE_LINE" | sed 's/.*http-cookie=//' | tr -d '\r' | xargs)
-          if [ -z "$COOKIE" ]; then
-            COOKIE=$(grep -m1 "hdntl=" playlist.m3u | sed 's/.*hdntl=/hdntl=/' | cut -d '"' -f1 | tr -d '\r' | xargs)
-          fi
-          echo "🍪 Firebase Stored Cookie:" > cookie.txt
-          echo "$COOKIE" >> cookie.txt
-          cat cookie.txt
-      - name: Push
+          python - <<'PY'
+          import os
+          import re
+          import sys
+          import requests
+
+          playlist_url = os.environ["PLAYLIST_URL"]
+
+          print("Fetching playlist...")
+
+          try:
+              response = requests.get(playlist_url, timeout=30)
+              response.raise_for_status()
+          except requests.RequestException as e:
+              print(f"Playlist fetch failed: {e}")
+              sys.exit(1)
+
+          lines = response.text.splitlines()
+          raw_cookie = None
+
+          for i, line in enumerate(lines):
+              if "Star Vijay Fun Games" in line:
+                  for j in range(i, min(i + 8, len(lines))):
+                      match = re.search(
+                          r'(hdntl=[^\s|"]+)',
+                          lines[j],
+                          re.IGNORECASE
+                      )
+                      if match:
+                          raw_cookie = match.group(1)
+                          break
+                  if raw_cookie:
+                      break
+
+          if not raw_cookie:
+              print("Cookie nahi mili. Purani cookie.txt safe rakhi gayi.")
+              sys.exit(1)
+
+          clean_cookie = re.split(
+              r'&(?:User-Agent|user-agent|Referer|referer|Origin|origin)=',
+              raw_cookie,
+              maxsplit=1
+          )[0]
+
+          clean_cookie = clean_cookie.strip().rstrip('&')
+
+          if not clean_cookie.startswith("hdntl="):
+              print("Invalid cookie format.")
+              sys.exit(1)
+
+          os.makedirs("Data", exist_ok=True)
+
+          with open("cookie.txt", "w", encoding="utf-8") as f:
+              f.write(clean_cookie + "\n")
+
+          print("Cookie saved to cookie.txt")
+          print("🍪 Stored Cookie:")
+          print(clean_cookie)
+          PY
+
+      - name: Commit Updated Cookie
         run: |
-          git config --global user.name "bot"
-          git config --global user.email "bot@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add cookie.txt
-          git commit -m "update" || true
-          git push
+
+          if git diff --cached --quiet; then
+            echo "Cookie unchanged. No commit needed."
+          else
+            git commit -m "Update Star Vijay Fun Games cookie"
+            git push
+          fi
