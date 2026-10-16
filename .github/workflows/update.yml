@@ -10,16 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - env:
+      - name: Extract Cookie
+        env:
           PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
         run: |
-          COOKIE_LINE=$(curl -sL "$PLAYLIST_URL" | grep -A2 "Star Vijay Fun Games" | grep "http-cookie")
-          COOKIE=$(echo "$COOKIE_LINE" | sed 's/.*http-cookie=//')
-          {
-            echo "🍪 Firebase Stored Cookie:"
-            echo "$COOKIE"
-          } > cookie.txt
-      - run: |
+          curl -sL -A "Mozilla/5.0" "$PLAYLIST_URL" -o playlist.m3u
+          COOKIE_LINE=$(cat playlist.m3u | grep -A2 "Star Vijay Fun Games" | grep "http-cookie" || true)
+          COOKIE=$(echo "$COOKIE_LINE" | sed 's/.*http-cookie=//' | tr -d '\r' | xargs)
+          if [ -z "$COOKIE" ]; then
+            COOKIE=$(grep -m1 "hdntl=" playlist.m3u | sed 's/.*hdntl=/hdntl=/' | cut -d '"' -f1 | tr -d '\r' | xargs)
+          fi
+          echo "🍪 Firebase Stored Cookie:" > cookie.txt
+          echo "$COOKIE" >> cookie.txt
+          cat cookie.txt
+      - name: Push
+        run: |
           git config --global user.name "bot"
           git config --global user.email "bot@github.com"
           git add cookie.txt
