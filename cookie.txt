@@ -1,1 +1,2 @@
-starting....
+🍪 Firebase Stored Cookie:
+hdntl=exp=1792195209~acl=%2f*~id=561c3ef75bcc7a7882dc6ec7ad87e064~data=hdntl~hmac=620b7a64f4354a9df5e7ce79513df3ae72d696a1b5d307d51450fe1fb31f70b3
