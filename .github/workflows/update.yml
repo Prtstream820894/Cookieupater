@@ -1,8 +1,9 @@
-name: Update Star Vijay Fun Games Cookie
+Name: Update Star Vijay Fun Games Cookie
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    # Har 4 ghante baad run hoga
+    - cron: '0 */4 * * *'
   workflow_dispatch:
 
 permissions:
@@ -50,9 +51,13 @@ jobs:
 
           print(f"Total lines fetched: {len(lines)}")
 
+          # Strictly Star Vijay Fun Games hi dhoondega
           for i, line in enumerate(lines):
-              if "Star Vijay" in line or "Fun Games" in line:
-                  print(f"Match found at line {i}: {line}")
+              line_clean = line.strip().lower()
+              
+              # Sirf 'star vijay fun games' naam check karega
+              if "star vijay fun games" in line_clean:
+                  print(f"✅ Exact Star Vijay Fun Games match found at line {i}: {line}")
                   for j in range(i, min(i + 15, len(lines))):
                       match = re.search(
                           r'(hdntl=[^\s|"]+)',
@@ -66,9 +71,10 @@ jobs:
                       break
 
           if not raw_cookie:
-              print("❌ Cookie nahi mili. Playlist check karein.")
+              print("❌ Star Vijay Fun Games ki cookie nahi mili. Playlist check karein.")
               sys.exit(1)
 
+          # Cookie Clean Up
           clean_cookie = re.split(
               r'&(?:User-Agent|user-agent|Referer|referer|Origin|origin)=',
               raw_cookie,
@@ -79,6 +85,7 @@ jobs:
               print("❌ Invalid cookie format.")
               sys.exit(1)
 
+          # Purely fresh cookie.txt file rewrite karega
           with open("cookie.txt", "w", encoding="utf-8") as f:
               f.write(clean_cookie + "\n")
 
@@ -103,3 +110,4 @@ jobs:
           fi
 
           git push
+          
