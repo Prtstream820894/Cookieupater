@@ -1,4 +1,4 @@
-Name: Update Star Vijay Fun Games Cookie
+name: Update Star Vijay Fun Games Cookie
 
 on:
   schedule:
@@ -110,4 +110,3 @@ jobs:
           fi
 
           git push
-          
