@@ -27,7 +27,7 @@ jobs:
 
       - name: Fetch Cookie and Update cookie.txt
         env:
-          PLAYLIST_URL: "https://game.playindia.fun/Jtv/XdEFdV/Playlist.m3u"
+          PLAYLIST_URL: "https://game.playindia.fun/Jtv/L8gNQY/Playlist.m3u"
         run: |
           python - <<'PY'
           import os
